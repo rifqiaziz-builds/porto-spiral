@@ -25,13 +25,19 @@ export default function ListView() {
       onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
     >
       <div className="flex flex-col items-center gap-4 md:gap-6 py-20">
-        {projects.map((project) => (
-          <ListProjectItem
+        {projects.map((project, i) => (
+          <motion.div
             key={project.id}
-            project={project}
-            onHover={setHoveredProject}
-            isHovered={hoveredProject === project.id}
-          />
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <ListProjectItem
+              project={project}
+              onHover={setHoveredProject}
+              isHovered={hoveredProject === project.id}
+            />
+          </motion.div>
         ))}
       </div>
 
