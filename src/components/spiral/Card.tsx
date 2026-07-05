@@ -16,6 +16,22 @@ const fallbackCache = new Map<number, THREE.CanvasTexture>();
 
 const W = 256;
 const H = 170;
+const RADIUS = 8;
+
+function roundClip(ctx: CanvasRenderingContext2D) {
+  ctx.beginPath();
+  ctx.moveTo(RADIUS, 0);
+  ctx.lineTo(W - RADIUS, 0);
+  ctx.quadraticCurveTo(W, 0, W, RADIUS);
+  ctx.lineTo(W, H - RADIUS);
+  ctx.quadraticCurveTo(W, H, W - RADIUS, H);
+  ctx.lineTo(RADIUS, H);
+  ctx.quadraticCurveTo(0, H, 0, H - RADIUS);
+  ctx.lineTo(0, RADIUS);
+  ctx.quadraticCurveTo(0, 0, RADIUS, 0);
+  ctx.closePath();
+  ctx.clip();
+}
 
 function getFallbackTexture(index: number) {
   if (fallbackCache.has(index)) return fallbackCache.get(index)!;
@@ -36,6 +52,8 @@ function getFallbackTexture(index: number) {
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
   const colors = palettes[index % palettes.length];
+
+  roundClip(ctx);
 
   const gradient = ctx.createLinearGradient(0, 0, W, H);
   colors.forEach((c, i) => gradient.addColorStop(i / (colors.length - 1), c));
@@ -60,6 +78,7 @@ function makeCardTexture(img: HTMLImageElement) {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
+  roundClip(ctx);
   ctx.drawImage(img, 0, 0, W, H);
   const tex = new THREE.CanvasTexture(canvas);
   tex.needsUpdate = true;
@@ -136,6 +155,7 @@ export default function CurvedCard({ project, index }: CurvedCardProps) {
       />
       <meshPhysicalMaterial
         map={currentMap}
+        transparent={true}
         side={THREE.DoubleSide}
         roughness={0.3}
         metalness={0.1}

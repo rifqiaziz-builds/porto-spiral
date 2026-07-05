@@ -30,21 +30,21 @@ export default function MenuOverlay() {
           <nav className="flex flex-col items-center gap-8" onClick={close}>
             <Link
               href="/"
-              className="text-6xl md:text-8xl font-bold text-black/10 hover:text-black transition-colors tracking-tighter"
+              className="text-6xl md:text-8xl font-bold text-black/30 hover:text-black transition-colors tracking-tighter"
               data-cursor="works"
             >
               Works
             </Link>
             <Link
               href="/about"
-              className="text-6xl md:text-8xl font-bold text-black/10 hover:text-black transition-colors tracking-tighter"
+              className="text-6xl md:text-8xl font-bold text-black/30 hover:text-black transition-colors tracking-tighter"
               data-cursor="about"
             >
               About
             </Link>
             <Link
               href="/contact"
-              className="text-6xl md:text-8xl font-bold text-black/10 hover:text-black transition-colors tracking-tighter"
+              className="text-6xl md:text-8xl font-bold text-black/30 hover:text-black transition-colors tracking-tighter"
               data-cursor="contact"
             >
               Contact
