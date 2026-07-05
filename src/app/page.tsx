@@ -5,18 +5,17 @@ import { AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
 import { useMobileDetect } from '@/hooks/useMobileDetect';
 import LandingGate from '@/components/LandingGate';
-import AudioPlayer from '@/components/AudioPlayer';
 import SpiralScene from '@/components/spiral/SpiralScene';
 import ListView from '@/components/list/ListView';
 import ProjectDetail from '@/components/detail/ProjectDetail';
 
 export default function Home() {
-  const { hasEntered, currentView, setView, activeProject, setActiveProject, previousView } = useAppStore();
+  const { hasEntered, currentView, setView, activeProject, setActiveProject, lastNonDetailView } = useAppStore();
   const isMobile = useMobileDetect();
 
   const handleCloseDetail = () => {
     setActiveProject(null);
-    setView(previousView);
+    setView(lastNonDetailView);
   };
 
   useEffect(() => {
@@ -35,7 +34,6 @@ export default function Home() {
 
   return (
     <>
-      <AudioPlayer />
       {currentView === 'spiral' && !isMobile && <SpiralScene />}
       <AnimatePresence mode="wait">
         {currentView === 'list' && <ListView key="list" />}

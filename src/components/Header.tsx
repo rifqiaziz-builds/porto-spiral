@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
@@ -25,16 +25,30 @@ const socials = [
 
 export default function Header() {
   const pathname = usePathname();
-  const { currentView, setView } = useAppStore();
+  const { currentView, setView, isAudioPlaying } = useAppStore();
   const [logoActive, setLogoActive] = useState(false);
   const isHome = pathname === '/';
 
+  const playSfx = useRef<HTMLAudioElement | null>(null);
+
+  const handleLogoClick = () => {
+    setLogoActive((p) => !p);
+    if (!isAudioPlaying) return;
+    if (!playSfx.current) {
+      playSfx.current = new Audio();
+      playSfx.current.volume = 0.4;
+    }
+    playSfx.current.src = '/click.ogg';
+    playSfx.current.currentTime = 0;
+    playSfx.current.play().catch(() => {});
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-40 grid grid-cols-3 items-center px-8 py-6">
-      <div className="flex items-center gap-6">
+      <div className="relative flex items-center gap-6">
         <motion.button
           data-cursor="logo"
-          onClick={() => setLogoActive((p) => !p)}
+          onClick={handleLogoClick}
           animate={
             logoActive
               ? { scale: 1.1, rotateX: -10, rotateY: -15, z: 20 }
@@ -50,16 +64,33 @@ export default function Header() {
           style={{ perspective: 500 }}
         >
           <span
-            className="text-2xl font-bold tracking-tight inline-block"
+            className={`text-2xl font-bold tracking-tight inline-block ${!logoActive ? 'animate-breathe' : ''}`}
             style={{
               color: '#fff',
               textShadow:
                 '0 1px 0 rgba(255,255,255,0.4), 0 2px 0 rgba(255,255,255,0.3), 0 3px 0 rgba(255,255,255,0.2), 0 4px 8px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.3)',
             }}
           >
-            Dayoon
+            M. Rifqi Aziz
           </span>
         </motion.button>
+
+        <AnimatePresence>
+          {!logoActive && (
+            <motion.span
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: [0.4, 1, 0.4], x: [0, 4, 0] }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-[10px] text-white/60 font-mono tracking-wider uppercase"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              click
+            </motion.span>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence>
           {logoActive &&
@@ -90,11 +121,10 @@ export default function Header() {
             <button
               onClick={() => setView('spiral')}
               data-cursor="view"
-              className={`text-sm font-mono tracking-widest uppercase transition-colors ${
-                currentView === 'spiral'
-                  ? 'text-white'
-                  : 'text-white/30 hover:text-white/60'
-              }`}
+              className={`text-sm font-mono tracking-widest uppercase transition-colors ${currentView === 'spiral'
+                ? 'text-white'
+                : 'text-white/30 hover:text-white/60'
+                }`}
             >
               spiral
             </button>
@@ -102,11 +132,10 @@ export default function Header() {
             <button
               onClick={() => setView('list')}
               data-cursor="view"
-              className={`text-sm font-mono tracking-widest uppercase transition-colors ${
-                currentView === 'list'
-                  ? 'text-white'
-                  : 'text-white/30 hover:text-white/60'
-              }`}
+              className={`text-sm font-mono tracking-widest uppercase transition-colors ${currentView === 'list'
+                ? 'text-white'
+                : 'text-white/30 hover:text-white/60'
+                }`}
             >
               list
             </button>

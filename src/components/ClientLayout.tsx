@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppStore } from '@/store/useAppStore';
+import AudioPlayer from '@/components/AudioPlayer';
 import GridBackground from '@/components/GridBackground';
 import Header from '@/components/Header';
 import RotatingText from '@/components/RotatingText';
@@ -16,6 +17,7 @@ export default function ClientLayout() {
 
   return (
     <>
+      <AudioPlayer />
       <GridBackground />
       <Header />
       {currentView !== 'detail' && <RotatingText />}

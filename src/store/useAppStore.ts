@@ -6,6 +6,7 @@ export type ViewState = 'spiral' | 'list' | 'detail';
 interface AppState {
   currentView: ViewState;
   previousView: ViewState;
+  lastNonDetailView: ViewState;
   setView: (view: ViewState) => void;
   activeProject: ProjectData | null;
   setActiveProject: (project: ProjectData | null) => void;
@@ -22,10 +23,12 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   currentView: 'spiral',
   previousView: 'spiral',
+  lastNonDetailView: 'spiral',
   setView: (view) =>
     set((state) => ({
       previousView: state.currentView,
       currentView: view,
+      lastNonDetailView: view !== 'detail' ? view : state.lastNonDetailView,
     })),
   activeProject: null,
   setActiveProject: (project) => set({ activeProject: project }),

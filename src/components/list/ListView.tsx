@@ -36,6 +36,7 @@ export default function ListView() {
               project={project}
               onHover={setHoveredProject}
               isHovered={hoveredProject === project.id}
+              hasAnyHover={hoveredProject !== null}
             />
           </motion.div>
         ))}
@@ -70,10 +71,12 @@ function ListProjectItem({
   project,
   onHover,
   isHovered,
+  hasAnyHover,
 }: {
   project: (typeof projects)[0];
   onHover: (id: number | null) => void;
   isHovered: boolean;
+  hasAnyHover: boolean;
 }) {
   const { setActiveProject, setView } = useAppStore();
 
@@ -94,7 +97,9 @@ function ListProjectItem({
         className={`text-4xl md:text-7xl font-bold tracking-tighter transition-all duration-300 ${
           isHovered
             ? 'text-white scale-105'
-            : 'text-white/20'
+            : hasAnyHover
+              ? 'text-white/20 scale-100'
+              : 'text-white/80 scale-100'
         }`}
       >
         {project.title}

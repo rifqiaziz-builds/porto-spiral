@@ -6,7 +6,7 @@ import { useAppStore } from '@/store/useAppStore';
 import GradientBackground from './GradientBackground';
 
 export default function ProjectDetail() {
-  const { activeProject, currentView, setActiveProject, setView, previousView } =
+  const { activeProject, currentView, setActiveProject, setView, lastNonDetailView } =
     useAppStore();
   const [hasPlayed, setHasPlayed] = useState(false);
 
@@ -14,7 +14,7 @@ export default function ProjectDetail() {
 
   const handleClose = () => {
     setActiveProject(null);
-    setView(previousView);
+    setView(lastNonDetailView);
   };
 
   const handlePlay = () => {
