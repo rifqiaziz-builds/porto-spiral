@@ -12,7 +12,12 @@ interface CurvedCardProps {
   index: number;
 }
 
+
 const fallbackCache = new Map<number, THREE.CanvasTexture>();
+const imageCache = new Map<string, THREE.Texture>();
+
+// Memori efisien: Kita buat satu Vector3 global untuk semua kartu agar tidak membebani RAM
+const worldPos = new THREE.Vector3();
 
 const W = 256;
 const H = 170;
@@ -71,8 +76,6 @@ function getFallbackTexture(index: number) {
   return tex;
 }
 
-const imageCache = new Map<string, THREE.Texture>();
-
 function makeCardTexture(img: HTMLImageElement) {
   const canvas = document.createElement('canvas');
   canvas.width = W;
@@ -100,7 +103,12 @@ function loadImage(url: string): Promise<THREE.Texture> {
 }
 
 export default function CurvedCard({ project, index }: CurvedCardProps) {
+  // Ref baru untuk efek kemiringan (Dynamic Skew)
+  const innerGroupRef = useRef<THREE.Group>(null);
+
   const meshRef = useRef<THREE.Mesh>(null);
+  const overlayRef = useRef<THREE.Mesh>(null);
+
   const [hovered, setHovered] = useState(false);
   const [thumbnail, setThumbnail] = useState<THREE.Texture | null>(null);
   const { setActiveProject, setView, setHoveredProject } = useAppStore();
@@ -115,14 +123,45 @@ export default function CurvedCard({ project, index }: CurvedCardProps) {
   const cardWidthAngle = SPIRAL_CONFIG.cardWidth / SPIRAL_CONFIG.radius;
 
   useFrame(() => {
+    // 1. DYNAMIC SKEW EFFECT
+    if (innerGroupRef.current) {
+      innerGroupRef.current.getWorldPosition(worldPos);
+
+      const skewFactorZ = -0.025; // Roll tilt (ke samping)
+      const skewFactorX = 0.015;  // Pitch tilt (atas/bawah)
+
+      let rotZ = worldPos.y * skewFactorZ;
+      let rotX = worldPos.y * skewFactorX;
+
+      // KOREKSI UNTUK BAGIAN BAWAH (Mencegah arah terbalik)
+      if (worldPos.y < 0) {
+        // Memaksa nilai rotasi Z searah dengan bagian atas
+        rotZ = Math.abs(worldPos.y) * skewFactorZ;
+
+        // Memaksa nilai rotasi X searah dengan bagian atas
+        // (Jika X terasa aneh setelah ini, ubah kembali rotX di bawah ini menjadi 'rotX = worldPos.y * skewFactorX;')
+        rotX = Math.abs(worldPos.y) * skewFactorX;
+      }
+
+      innerGroupRef.current.rotation.z = rotZ;
+      innerGroupRef.current.rotation.x = rotX;
+    }
+
+    // 2. HOVER ANIMATION (Mengecil)
     if (meshRef.current) {
-      const target = hovered ? 1.12 : 1;
+      const target = hovered ? 0.94 : 1;
       meshRef.current.scale.x += (target - meshRef.current.scale.x) * 0.08;
       meshRef.current.scale.y += (target - meshRef.current.scale.y) * 0.08;
       meshRef.current.scale.z += (target - meshRef.current.scale.z) * 0.08;
     }
-  });
 
+    // 3. OVERLAY OPACITY ANIMATION
+    if (overlayRef.current) {
+      const mat = overlayRef.current.material as THREE.MeshBasicMaterial;
+      const target = hovered ? 0.55 : 0;
+      mat.opacity += (target - mat.opacity) * 0.08;
+    }
+  });
   const handleClick = () => {
     setActiveProject(project);
     setView('detail');
@@ -131,41 +170,64 @@ export default function CurvedCard({ project, index }: CurvedCardProps) {
   const currentMap = thumbnail || fallback;
 
   return (
-    <mesh
-      ref={meshRef}
-      onPointerEnter={() => {
-        setHovered(true);
-        setHoveredProject(project);
-      }}
-      onPointerLeave={() => {
-        setHovered(false);
-        setHoveredProject(null);
-      }}
-      onClick={handleClick}
-    >
-      <cylinderGeometry
-        args={[
-          SPIRAL_CONFIG.radius,
-          SPIRAL_CONFIG.radius,
-          height,
-          24, 1, true,
-          -cardWidthAngle / 2,
-          cardWidthAngle,
-        ]}
-      />
-      <meshPhysicalMaterial
-        map={currentMap}
-        transparent={true}
-        side={THREE.DoubleSide}
-        roughness={0.3}
-        metalness={0.1}
-        clearcoat={0.4}
-        clearcoatRoughness={0.3}
-        emissive={new THREE.Color('#ffffff')}
-        emissiveIntensity={hovered ? 0.15 : 0.03}
-        emissiveMap={currentMap}
-        toneMapped={false}
-      />
-    </mesh>
+    // innerGroupRef membungkus kartu untuk mengatur kemiringan,
+    // sementara animasi hover tetap aman di dalam meshRef
+    <group ref={innerGroupRef}>
+      <mesh
+        ref={meshRef}
+        onPointerEnter={() => {
+          setHovered(true);
+          setHoveredProject(project);
+        }}
+        onPointerLeave={() => {
+          setHovered(false);
+          setHoveredProject(null);
+        }}
+        onClick={handleClick}
+      >
+        <cylinderGeometry
+          args={[
+            SPIRAL_CONFIG.radius,
+            SPIRAL_CONFIG.radius,
+            height,
+            24, 1, true,
+            -cardWidthAngle / 2,
+            cardWidthAngle,
+          ]}
+        />
+        <meshPhysicalMaterial
+          map={currentMap}
+          transparent={true}
+          side={THREE.DoubleSide}
+          roughness={0.3}
+          metalness={0.1}
+          clearcoat={0.4}
+          clearcoatRoughness={0.3}
+          emissive={new THREE.Color('#ffffff')}
+          emissiveIntensity={hovered ? 0.15 : 0.03}
+          emissiveMap={currentMap}
+          toneMapped={false}
+        />
+        <mesh ref={overlayRef}>
+          <cylinderGeometry
+            args={[
+              SPIRAL_CONFIG.radius + 0.01,
+              SPIRAL_CONFIG.radius + 0.01,
+              height + 0.01,
+              24, 1, true,
+              -cardWidthAngle / 2,
+              cardWidthAngle,
+            ]}
+          />
+          <meshBasicMaterial
+            color="black"
+            transparent={true}
+            opacity={0}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </mesh>
+    </group>
   );
 }

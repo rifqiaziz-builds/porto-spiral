@@ -21,14 +21,14 @@ export default function SpiralScene() {
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.4} color="#4040a0" />
-          <directionalLight position={[5, 8, 5]} intensity={1.2} color="#ffeedd" />
+          <directionalLight position={[5, 8, 5]} intensity={0.6} color="#ffeedd" />
           <directionalLight position={[-5, -3, -5]} intensity={0.4} color="#4488ff" />
           <pointLight position={[0, 0, 3]} intensity={0.3} color="#ffffff" />
           <SpiralGroup />
           <AdaptiveDpr pixelated />
         </Suspense>
         <Suspense fallback={null}>
-          <Environment preset="studio" />
+          <Environment preset="warehouse" />
         </Suspense>
       </Canvas>
     </div>
